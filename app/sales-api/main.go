@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"time"
 
@@ -14,7 +16,7 @@ import (
 var build = "develop"
 
 func main() {
-	logger := log.New(os.Stdout, "SALES : ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile)
+	logger := log.New(os.Stdout, "SALES: ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile)
 	if err := run(logger); err != nil {
 		logger.Println("main: error:", err)
 		os.Exit(1)
@@ -22,6 +24,9 @@ func main() {
 }
 
 func run(logger *log.Logger) error {
+	// =========================================================================
+	// Configuration
+
 	var cfg struct {
 		conf.Version
 		Web struct {
@@ -56,14 +61,35 @@ func run(logger *log.Logger) error {
 		return errors.Wrap(err, "parsing config")
 	}
 
+	// =========================================================================
+	// App Starting
+
 	expvar.NewString("build").Set(build)
-	log.Printf("main : Started : Application initializing : version %q", build)
-	defer log.Println("main : Completed")
+	log.Printf("main: Started: Application initializing: version %q", build)
+	defer log.Println("main: Completed")
 
 	out, err := conf.String(&cfg)
 	if err != nil {
 		return errors.Wrap(err, "generating config for output")
 	}
-	fmt.Printf("main : Config : \n%v\n", out)
+	fmt.Printf("main: Config: \n%v\n", out)
+
+	// =========================================================================
+	// Start Debug Service
+	//
+	// /debug/pprof - Added to the default mux by importing the net/http/pprof package.
+	// /debug/vars - Added to the default mux by importing the expvar package.
+	//
+	// Not concerned with shutting this down when the application is shutdown.
+
+	log.Println("main: Initializing debugging support")
+
+	go func() {
+		log.Printf("main: Debug Listening %s", cfg.Web.DebugHost)
+		if err := http.ListenAndServe(cfg.Web.DebugHost, http.DefaultServeMux); err != nil {
+			log.Printf("main: Debug Listener closed: %v", err)
+		}
+	}()
+
 	return nil
 }
