@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"expvar"
 	"fmt"
 	"github.com/pkg/errors"
@@ -112,6 +113,22 @@ func run(logger *log.Logger) error {
 		log.Printf("main: API listening on %s", api.Addr)
 		serverErrors <- api.ListenAndServe()
 	}()
+
+	// =========================================================================
+	// Shutdown
+
+	select {
+	case err := <-serverErrors:
+		return errors.Wrap(err, "server error")
+	case sig := <-shutdown:
+		log.Printf("main: %v : Start shutdown", sig)
+		ctx, cancel := context.WithTimeout(context.Background(), cfg.Web.ShutdownTimeout)
+		defer cancel()
+		if err := api.Shutdown(ctx); err != nil {
+			api.Close()
+			return errors.Wrap(err, "could not stop server gracefully")
+		}
+	}
 
 	return nil
 }
