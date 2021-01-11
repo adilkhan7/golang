@@ -8,6 +8,8 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/ardanlabs/conf"
@@ -89,6 +91,26 @@ func run(logger *log.Logger) error {
 		if err := http.ListenAndServe(cfg.Web.DebugHost, http.DefaultServeMux); err != nil {
 			log.Printf("main: Debug Listener closed: %v", err)
 		}
+	}()
+	// =========================================================================
+	// Start API Service
+
+	log.Println("main: Initializing API support ")
+	shutdown := make(chan os.Signal, 1)
+	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
+
+	api := http.Server{
+		Addr: cfg.Web.APIHost,
+		//Handler:      handlers.API(build, shutdown, log, auth, db),
+		ReadTimeout:  cfg.Web.ReadTimeout,
+		WriteTimeout: cfg.Web.WriteTimeout,
+	}
+
+	serverErrors := make(chan error, 1)
+
+	go func() {
+		log.Printf("main: API listening on %s", api.Addr)
+		serverErrors <- api.ListenAndServe()
 	}()
 
 	return nil
