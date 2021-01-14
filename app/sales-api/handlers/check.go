@@ -18,13 +18,11 @@ func (c check) readiness(ctx context.Context, w http.ResponseWriter, r *http.Req
 	if n := rand.Intn(100); n%2 == 0 {
 		return errors.New("untrusted error")
 	}
-
 	status := struct {
 		Status string
 	}{
 		Status: "service ready",
 	}
 
-	c.log.Println(r, status)
 	return web.Respond(ctx, w, status, http.StatusOK)
 }

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"gitlab.com/tleuzhan13/service/business/middleware"
 	"log"
 	"net/http"
 	"os"
@@ -9,7 +10,7 @@ import (
 )
 
 func API(build string, shutdown chan os.Signal, log *log.Logger) *web.App {
-	app := web.NewApp(shutdown)
+	app := web.NewApp(shutdown, middleware.Logger(log))
 
 	check := check{
 		log: log,
