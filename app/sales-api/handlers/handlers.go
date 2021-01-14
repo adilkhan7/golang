@@ -10,7 +10,7 @@ import (
 )
 
 func API(build string, shutdown chan os.Signal, log *log.Logger) *web.App {
-	app := web.NewApp(shutdown, middleware.Logger(log), middleware.Errors(log), middleware.Panics(log))
+	app := web.NewApp(shutdown, middleware.Logger(log), middleware.Errors(log), middleware.Metrics(), middleware.Panics(log))
 
 	check := check{
 		log: log,
