@@ -10,6 +10,16 @@ SHELL := /bin/zsh
 #
 # expvarmon -ports=":4000" -vars="build,requests,goroutines,errors,mem:memstats.Alloc"
 # hey -m GET -c 100 -n 1000000 "http://localhost:3000/readiness"
+
+
+
+# ==============================================================================
+# Running tests within the local computer
+
+test:
+	go test -v ./... -count=1
+#	staticcheck ./...
+
 run:
 	go run app/sales-api/main.go
 
