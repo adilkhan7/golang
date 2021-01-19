@@ -8,6 +8,11 @@ SHELL := /bin/zsh
 # openssl rsa -pubout -in private.pem -out public.pem
 #
 #
+#
+# curl --user "admin@example.com:gophers" http://localhost:3000/v1/users/token/54bb2165-71e1-41a6-af3e-7da4a0e1e2c1
+# export TOKEN="COPY TOKEN STRING FROM LAST CALL"
+# curl -H "Authorization: Bearer ${TOKEN}" http://localhost:3000/v1/users/1/2
+#
 # expvarmon -ports=":4000" -vars="build,requests,goroutines,errors,mem:memstats.Alloc"
 # hey -m GET -c 100 -n 1000000 "http://localhost:3000/readiness"
 
